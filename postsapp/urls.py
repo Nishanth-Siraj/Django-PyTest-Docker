@@ -4,5 +4,9 @@ from postsapp.views import *
 urlpatterns = [
     path('create-posts/',
          CreatePostApi.as_view(),
-         name="create-posts")
+         name="create-posts"),
+
+    path('list-posts/',
+         ListPostApi.as_view(),
+         name='list-posts')
 ]
