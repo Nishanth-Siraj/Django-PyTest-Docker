@@ -8,5 +8,9 @@ urlpatterns = [
 
     path('list-posts/',
          ListPostApi.as_view(),
-         name='list-posts')
+         name='list-posts'),
+
+     path('update-delete-posts/<int:pk>/',
+         LeadUpdateDestroyApiView.as_view(),
+         name='update-delete-posts'),
 ]
