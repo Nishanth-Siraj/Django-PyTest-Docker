@@ -5,7 +5,7 @@ from rest_framework import filters
 from rest_framework import generics, status
 from rest_framework.response import Response
 from postsapp.models import Post
-from postsapp.serializers import CreatePostSerializer, ListPostSerializer
+from postsapp.serializers import CreatePostSerializer, ListPostSerializer,UpdateDeleteSerializer
 
 class CreatePostApi(generics.CreateAPIView):
     serializer_class    = CreatePostSerializer
@@ -60,3 +60,65 @@ class ListPostApi(generics.ListAPIView):
         return Response({
             "data": {}
         },status=status.HTTP_204_NO_CONTENT)
+    
+class LeadUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = UpdateDeleteSerializer
+
+    def destroy(self, request, pk, *args, **kwargs):
+        try:
+            obj = Post.objects.filter(id=pk)
+            if obj:
+                self.perform_destroy(obj)
+                return Response({
+                    "provided_by"   : "Alliance CRM",
+                    "message"       : "Lead deleted successfully",
+                    "status"        : "200"
+                },status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "provided_by"   : "Alliance CRM",
+                    "message"       : "Lead not deleted",
+                    "status"        : "400"
+                },status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "provided_by"   : "Alliance CRM",
+                "message"       : str(e),
+                "status"        : "400",
+                "success"       : False
+            },status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            item = Post.objects.get(id=pk)
+
+            serializer = self.serializer_class(
+                item, 
+                data=request.data, 
+                partial=True
+            )
+            if serializer.is_valid():
+                    
+                serializer.save()
+                return Response({
+                        "provided_by"   : "Alliance CRM",
+                        "message"       : "Lead updated successfully",
+                        "status"        : "200",
+                        "data"          : serializer.data
+                    },status=status.HTTP_200_OK,)
+            else:
+                return Response({
+                    "provided_by"   : "Alliance CRM",
+                    "message"       : "Lead not updated",
+                    "status"        : "400",
+                    "data"          : serializer.errors
+                },status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            error_msg = str(e)
+            return Response({
+                "provided_by"   : "Alliance CRM",
+                "message"       : error_msg,
+                "status"        : "400",
+                "success"       : False
+            },status=status.HTTP_400_BAD_REQUEST)
