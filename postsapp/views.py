@@ -61,7 +61,7 @@ class ListPostApi(generics.ListAPIView):
             "data": {}
         },status=status.HTTP_204_NO_CONTENT)
     
-class LeadUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
+class LeadUpdateDestroyApiView(generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = UpdateDeleteSerializer
 
@@ -69,7 +69,7 @@ class LeadUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({
-            "provided_by": "Alliance CRM",
+            "provided_by": "Posts app",
             "message": "Lead deleted successfully",
             "status": "200"
         }, status=status.HTTP_200_OK)
@@ -85,7 +85,7 @@ class LeadUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
         if serializer.is_valid():
             self.perform_update(serializer)
             return Response({
-                "provided_by": "Alliance CRM",
+                "provided_by": "Posts app",
                 "message": "Lead updated successfully",
                 "status": "200",
                 "data": serializer.data
