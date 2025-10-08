@@ -61,64 +61,38 @@ class ListPostApi(generics.ListAPIView):
             "data": {}
         },status=status.HTTP_204_NO_CONTENT)
     
-class LeadUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
+class LeadUpdateDestroyApiView(generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = UpdateDeleteSerializer
 
-    def destroy(self, request, pk, *args, **kwargs):
-        try:
-            obj = Post.objects.filter(id=pk)
-            if obj:
-                self.perform_destroy(obj)
-                return Response({
-                    "provided_by"   : "Alliance CRM",
-                    "message"       : "Lead deleted successfully",
-                    "status"        : "200"
-                },status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    "provided_by"   : "Alliance CRM",
-                    "message"       : "Lead not deleted",
-                    "status"        : "400"
-                },status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                "provided_by"   : "Alliance CRM",
-                "message"       : str(e),
-                "status"        : "400",
-                "success"       : False
-            },status=status.HTTP_400_BAD_REQUEST)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({
+            "provided_by": "Posts app",
+            "message": "Lead deleted successfully",
+            "status": "200"
+        }, status=status.HTTP_200_OK)
 
-    def patch(self, request, pk):
-        try:
-            item = Post.objects.get(id=pk)
-
-            serializer = self.serializer_class(
-                item, 
-                data=request.data, 
-                partial=True
-            )
-            if serializer.is_valid():
-                    
-                serializer.save()
-                return Response({
-                        "provided_by"   : "Alliance CRM",
-                        "message"       : "Lead updated successfully",
-                        "status"        : "200",
-                        "data"          : serializer.data
-                    },status=status.HTTP_200_OK,)
-            else:
-                return Response({
-                    "provided_by"   : "Alliance CRM",
-                    "message"       : "Lead not updated",
-                    "status"        : "400",
-                    "data"          : serializer.errors
-                },status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            error_msg = str(e)
+    def partial_update(self, request, *args, **kwargs):
+        # tells DRF this is a PATCH
+        kwargs['partial'] = True   
+        serializer = self.get_serializer(
+            self.get_object(), 
+            data=request.data, 
+            partial=True
+        )
+        if serializer.is_valid():
+            self.perform_update(serializer)
             return Response({
-                "provided_by"   : "Alliance CRM",
-                "message"       : error_msg,
-                "status"        : "400",
-                "success"       : False
-            },status=status.HTTP_400_BAD_REQUEST)
+                "provided_by": "Posts app",
+                "message": "Lead updated successfully",
+                "status": "200",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "provided_by": "Alliance CRM",
+            "message": "Lead not updated",
+            "status": "400",
+            "data": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
